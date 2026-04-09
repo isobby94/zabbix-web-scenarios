@@ -1,0 +1,34 @@
+zabbix_export:
+  version: '7.0'
+  template_groups:
+    - uuid: a571c0d144b14fd4a87a9d9b2aa9fcd6
+      name: Templates/Applications
+  templates:
+    - uuid: 9b20f4fba93149d193a787997f685a76
+      template: 'Web scenarios'
+      name: 'Web scenarios'
+      groups:
+        - name: Templates/Applications
+      httptests:
+        - uuid: 29708055633d4777973b39b6cc0fd1be
+          name: web
+          steps:
+            - name: root
+              url: '{$PROTO}://{HOST.NAME}{$PORT}{$URL}'
+              status_codes: '{$RESPONSE_CODE}'
+          tags:
+            - tag: Application
+              value: Web
+      macros:
+        - macro: '{$PORT}'
+        - macro: '{$PROTO}'
+          value: https
+        - macro: '{$RESPONSE_CODE}'
+          value: '200'
+        - macro: '{$URL}'
+  triggers:
+    - uuid: d27e2157c6004e3ba2c142133ddf2c6f
+      expression: 'length(last(/Web scenarios/web.test.error[web]))>0 and last(/Web scenarios/web.test.fail[web])>0'
+      name: 'Web check failed on {HOST.NAME}: {ITEM.VALUE}'
+      event_name: '{ITEM.VALUE}'
+      priority: DISASTER
